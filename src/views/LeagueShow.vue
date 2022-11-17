@@ -290,7 +290,7 @@ export default {
                         <div class="col-3" style="width: 150px;">T</div>
                         <div class="col-3" style="width: 150px;">W - L</div>
                         <div class="col-3" style="width: 150px;">S</div>
-                        <div class="col-3" style="width: 50px;">P</div>
+                        <div class="col-3" style="width: 50px;">Pt</div>
                         <div class="col-3" style="width: 150px;"></div>
                         <div class="col-3" style="width: 50px;"></div>
                     </div>
