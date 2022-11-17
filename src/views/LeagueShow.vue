@@ -13,6 +13,12 @@ export default {
 
     methods: {
 
+        compareMatch(m1, m2) {
+            if (m1.rank < m2.rank) return -1;
+            else if (m1.rank > m2.rank) return 1;
+            else return 0;
+        },
+
         getTeam(teamId) {
             this.axios.get("/teams/"+teamId).then(res => {
                 return res.data;
@@ -30,6 +36,8 @@ export default {
 
                 this.axios.get("/participants/search?league="+this.id).then(res => {
                     this.participants = res.data.content;
+                    this.participants.sort(this.compareMatch);
+
 
                     this.participants.forEach(participant => {
                         this.axios.get("/teams/"+participant.teamId).then(res=> {
@@ -48,6 +56,8 @@ export default {
 
         this.axios.get("/participants/search?league="+this.id).then(res => {
             this.participants = res.data.content;
+
+            this.participants.sort(this.compareMatch);
 
             this.participants.forEach(participant => {
                 this.axios.get("/teams/"+participant.teamId).then(res=> {
