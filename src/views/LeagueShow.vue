@@ -19,6 +19,43 @@ export default {
             else return 0;
         },
 
+        getTeamData(participantId, field) {
+
+            const participant = this.participants.filter(participant => participant.id === participantId)[0];
+            let ret = "";
+
+            switch(field) {
+                case "name":
+                    ret = participant.team.name;
+                    break;
+                case "shortName":
+                    ret = participant.team.shortName;
+                    break;
+                case "stat":
+                    ret = participant.team.stat;
+                    break;
+                case "win":
+                    ret = participant.win;
+                    break;
+                case "loss":
+                    ret = participant.loss;
+                    break;
+                case "setWin":
+                    ret = participant.setWin;
+                    break;
+                case "setLoss":
+                    ret = participant.setLoss;
+                    break;
+                case "rank":
+                    ret = participant.rank;
+                    break;
+                default:
+                    ret = "not valid field";
+                    break;
+            }
+            return ret;
+        },
+
         getTeam(teamId) {
             this.axios.get("/teams/"+teamId).then(res => {
                 return res.data;
@@ -46,6 +83,47 @@ export default {
                     });
                 })
             });
+        },
+
+        putMatchCancel(match) {
+            match.homeScore = "";
+            match.awayScore = "";
+            match.tmpHomeScore = "";
+            match.tmpAwayScore = "";
+            
+            this.axios.put("/matches/"+match.id+"/cancel").then(res => {
+                console.log(res);
+
+                this.axios.get("/participants/search?league="+this.id).then(res => {
+                    this.participants = res.data.content;
+                    this.participants.sort(this.compareMatch);
+
+
+                    this.participants.forEach(participant => {
+                        this.axios.get("/teams/"+participant.teamId).then(res=> {
+                            participant.team = res.data;
+                        });
+                    });
+                })
+            });
+        },
+
+        randomMatch(match) {
+            const homeStat = this.getTeamData(match.homeId, "stat");
+            const awayStat = this.getTeamData(match.awayId, "stat");
+
+            let homeScore = 0;
+            let awayScore = 0;
+
+            while (homeScore < 2 && awayScore < 2) {
+                let r = Math.floor(Math.random() * (homeStat + awayStat));
+
+                if (r < homeStat) homeScore++;
+                else awayScore++;
+            }
+
+            match.tmpHomeScore = homeScore;
+            match.tmpAwayScore = awayScore;
         }
         
     },
@@ -78,11 +156,9 @@ export default {
                     match.awayScore = "";
                 }
 
-
                 match.tmpHomeScore = "";
                 match.tmpAwayScore = "";
             });
-
         });
         
     },
@@ -124,7 +200,7 @@ export default {
                 <div class="col-1 p-0"><img src="@/assets/img/1.png"></div>
                 <div class="col-2">{{ participant.team.shortName }}</div>
                 <div class="col-3">{{ participant.win }} - {{ participant.loss }}</div>
-                <div class="col-3">{{ participant.setWin - participant.setLoss }}</div>
+                <div class="col-3">{{ (participant.setWin - participant.setLoss > 0) ? "+" : "" }}{{ participant.setWin - participant.setLoss }}</div>
             </div>
         </div>
 
@@ -226,7 +302,9 @@ export default {
                         <div class="col-3" style="width: 90px; text-align: left;">{{ participant.team.shortName }}</div>
                         <div class="col-3" style="width: 150px;">{{ participant.win }}W {{ participant.loss }}L</div>
                         <div class="col-3" style="width: 150px;">{{ participant.setWin }} - {{ participant.setLoss }}</div>
-                        <div class="col-3" style="width: 50px;">{{ participant.setWin - participant.setLoss }}</div>
+                        <div class="col-3" style="width: 50px;">
+                            {{ (participant.setWin - participant.setLoss > 0) ? "+" : "" }}{{ participant.setWin - participant.setLoss }}
+                        </div>
                         <div class="col-3" style="width: 150px;"></div>
                         <div class="col-3" style="width: 50px;">P</div>
                     </div>
@@ -242,20 +320,16 @@ export default {
                     <div class="col-12 m-2 row text">
                         <div class="col-1 my-auto"><img src="@/assets/img/1.png"></div>
                         <div class="col-8">
-                            <h5>
-                                {{ match.homeId }} 팀
-                            </h5>
-                            1위 
+                            <h5>{{ getTeamData(match.homeId, "name") }}</h5>
+                            {{ getTeamData(match.homeId, "rank") }}위 {{ getTeamData(match.homeId, "win") }}W {{ getTeamData(match.homeId, "loss") }}L    
                         </div>
                         <div class="col-3 title my-auto"><h5>{{ match.homeScore }}</h5></div>
                     </div>
                     <div class="col-12 m-2 row text">
                         <div class="col-1 my-auto"><img src="@/assets/img/t1.png"></div>
                         <div class="col-3">
-                            <h5>
-                                {{ match.awayId }} 팀
-                            </h5>
-                            2위 1W 0L
+                            <h5>{{ getTeamData(match.awayId, "name") }}</h5>
+                            {{ getTeamData(match.awayId, "rank") }}위 {{ getTeamData(match.awayId, "win") }}W {{ getTeamData(match.awayId, "loss") }}L    
                         </div>
                         <div class="col-5"><h5><span class="badge bg-primary">win</span></h5></div>
                         <div class="col-3 title my-auto"><h5>{{ match.awayScore }}</h5></div>
@@ -276,18 +350,25 @@ export default {
                         <div class="accordion-body main row">
                             <div class="col-12 m-2 row text">
                                 <div class="col-1 my-auto"><img src="@/assets/img/1.png"></div>
-                                <div class="col-7"><h5>{{ match.homeId }} 팀</h5>1위 2W 0L</div>
+                                <div class="col-7">
+                                    <h5>{{ getTeamData(match.homeId, "name") }}</h5>
+                                    {{ getTeamData(match.homeId, "rank") }}위 {{ getTeamData(match.homeId, "win") }}W {{ getTeamData(match.homeId, "loss") }}L
+                                </div>
                                 <div class="col-4 title my-auto"><input v-model="match.tmpHomeScore"></div>
                             </div>
                             <div class="col-12 m-2 row text">
                                 <div class="col-1 my-auto"><img src="@/assets/img/t1.png"></div>
-                                <div class="col-7"><h5>{{ match.awayId }} 팀</h5>2위 1W 0L</div>
+                                <div class="col-7">
+                                    <h5>{{ getTeamData(match.awayId, "name") }}</h5>
+                                    {{ getTeamData(match.awayId, "rank") }}위 {{ getTeamData(match.awayId, "win") }}W {{ getTeamData(match.awayId, "loss") }}L
+                                </div>
                                 <div class="col-4 title my-auto"><input v-model="match.tmpAwayScore"></div>
                             </div>
                             <div class="col-12 m-2">
-                                <button class="btn-main" @click="putMatch(match)">확인</button>
-                                <button class="btn-side">랜덤</button>
-                                <button class="btn-side">취소</button>
+                                <button class="collapsed btn-main" @click="putMatch(match)" type="button" data-bs-toggle="collapse" :data-bs-target="`#flush-collapse${match.id}`">확인</button>
+                                <button class="btn-side" @click="randomMatch(match)">랜덤</button>
+                                <button class="collapsed btn-side" type="button" data-bs-toggle="collapse" :data-bs-target="`#flush-collapse${match.id}`">취소</button>
+                                <button class="collapsed btn-side" @click="putMatchCancel(match)" type="button" data-bs-toggle="collapse" :data-bs-target="`#flush-collapse${match.id}`">Clear</button>
                             </div>
                         </div>
                     </div>
