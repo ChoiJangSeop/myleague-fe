@@ -56,6 +56,70 @@ export default {
             return ret;
         },
 
+        getRecentResult(participant, amount) {
+
+            participant.recentWin = 0;
+            participant.recentLoss = 0;
+            participant.streak = "";
+
+            const recentMatches = this.matches.filter(match => (
+                match.complete === true &&
+                (match.homeId === participant.id || match.awayId === participant.id)
+            ));
+            const len = recentMatches.length;
+
+            for (var i=1; i<=amount; ++i) {
+                if (len - i < 0) break;
+
+                if (recentMatches[len-i].homeId === participant.id) {
+                    if (recentMatches[len-i].homeScore > recentMatches[len-i].awayScore) {
+                        participant.recentWin++;
+                    } else {
+                        participant.recentLoss++;
+                    }
+                } else {
+                    if (recentMatches[len-i].homeScore > recentMatches[len-i].awayScore) {
+                        participant.recentLoss++;
+                    } else {
+                        participant.recentWin++;
+                    }
+                }
+            }
+
+            let flag = -1;  // win : 1 / loss : 0
+            let num = 0;
+            let curr = -1;
+
+            for (var i=1; i<=len; ++i) {
+
+                if (recentMatches[len-i].homeId === participant.id) {
+                    if (recentMatches[len-i].homeScore > recentMatches[len-i].awayScore) {
+                        curr = 1;
+                    } else {
+                        curr = 0;
+                    }
+                } else {
+                    if (recentMatches[len-i].homeScore > recentMatches[len-i].awayScore) {
+                        curr = 0;
+                    } else {
+                        curr = 1;
+                    }
+                }
+
+                if (flag === -1) {
+                    flag = curr;
+                    num++;
+                } else if (flag === curr) {
+                    num++;
+                } else {
+                    break;
+                }
+            }
+
+            if (flag === 1) participant.streak = num.toString() + "W";
+            else if (flag == 0) participant.streak = num.toString() + "L";
+        },  
+
         getTeam(teamId) {
             this.axios.get("/teams/"+teamId).then(res => {
                 return res.data;
@@ -65,6 +129,8 @@ export default {
         putMatch(match) {
             match.homeScore = match.tmpHomeScore;
             match.awayScore = match.tmpAwayScore;
+            match.complete = true;
+
             match.tmpHomeScore = "";
             match.tmpAwayScore = "";
 
@@ -80,6 +146,7 @@ export default {
                         this.axios.get("/teams/"+participant.teamId).then(res=> {
                             participant.team = res.data;
                         });
+                        this.getRecentResult(participant, 5);
                     });
                 })
             });
@@ -88,6 +155,8 @@ export default {
         putMatchCancel(match) {
             match.homeScore = "";
             match.awayScore = "";
+            match.complete = false;
+
             match.tmpHomeScore = "";
             match.tmpAwayScore = "";
             
@@ -103,6 +172,7 @@ export default {
                         this.axios.get("/teams/"+participant.teamId).then(res=> {
                             participant.team = res.data;
                         });
+                        this.getRecentResult(participant, 5);
                     });
                 })
             });
@@ -141,6 +211,8 @@ export default {
                 this.axios.get("/teams/"+participant.teamId).then(res=> {
                     participant.team = res.data;
                 });
+
+                this.getRecentResult(participant, 5);
             });
         })
 
@@ -148,6 +220,12 @@ export default {
             this.matches = res.data.content;
 
             this.matches.forEach(match => {
+                if (match.homeScore < 0 || match.awayScore < 0) {
+                    match.complete = false;
+                } else {
+                    match.complete = true;
+                }
+                
                 if (match.homeScore < 0) {
                     match.homeScore = "";
                 }
@@ -197,7 +275,7 @@ export default {
                 class="table-head col-12 row mx-0 my-1 text" 
                 style="text-align: center;">
                 <div class="col-3">{{ participant.rank }}</div>
-                <div class="col-1 p-0"><img src="@/assets/img/1.png"></div>
+                <div class="col-1 p-0"><img src="@/assets/img/lck.png"></div>
                 <div class="col-2">{{ participant.team.shortName }}</div>
                 <div class="col-3">{{ participant.win }} - {{ participant.loss }}</div>
                 <div class="col-3">{{ (participant.setWin - participant.setLoss > 0) ? "+" : "" }}{{ participant.setWin - participant.setLoss }}</div>
@@ -207,27 +285,26 @@ export default {
         <!-- main page -->
         <div class="col-9 p-0 main">
             <!-- navigation -->
-            <nav class="navbar navbar-expand-lg navbar-dark">
-                <div class="container-fluid">
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            
+            <nav id="navar" class="navbar navbar-expand-lg navbar-dark">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="#">Main</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link" href="/team">Match</a>
+                        <a class="nav-link" href="#standing">Standing</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link" href="#">Standing</a>
+                        <a class="nav-link" href="#match">Match</a>
                         </li>
                         <li class="nav-item">
                         <a class="nav-link" href="#">Playoff</a>
                         </li>
                     </ul>
-                    </div>
-                </div>
             </nav>
 
+            <!-- main container-->
+            <div data-bs-spy="scroll" data-bs-target="#navbar" data-bs-offset="0" class="scrollspy-example" tabindex="0">
             <!-- Teams -->
             <div class="col-12 row">
                 <div class="col-12 text m-3">
@@ -235,7 +312,7 @@ export default {
                 </div>
                 <div class="row mx-3">
                     <div v-for="participant in participants" :key="participant.id" class="col-1 title">
-                        <div style="line-height:65px;" class="m-1"><img src="@/assets/img/1.png"></div>
+                        <div style="line-height:65px;" class="m-1"><img src="@/assets/img/lck.png"></div>
                         <h5>{{ participant.team.name }}</h5>
                     </div>
                 </div>
@@ -271,7 +348,7 @@ export default {
             </div>
 
             <!-- standing -->
-            <div class="col-12 text m-3">
+            <div id="standing" class="col-12 text m-3">
                     <h4>Standing</h4>
             </div>
             <div class="col-12 row">
@@ -287,38 +364,38 @@ export default {
                 <div class="col-9">
                     <div class="table-head main col-12 row mx-0 my-1 text" style="text-align: center; border-bottom: 1px solid black;">
                         <div class="col-3" style="width: 50px;">R</div>
-                        <div class="col-3" style="width: 150px;">T</div>
-                        <div class="col-3" style="width: 150px;">W - L</div>
-                        <div class="col-3" style="width: 150px;">S</div>
+                        <div class="col-3" style="width: 150px;">TEAM</div>
+                        <div class="col-3" style="width: 150px;">MATCH</div>
+                        <div class="col-3" style="width: 150px;">SET</div>
                         <div class="col-3" style="width: 50px;">Pt</div>
-                        <div class="col-3" style="width: 150px;"></div>
-                        <div class="col-3" style="width: 50px;"></div>
+                        <div class="col-3" style="width: 150px;">최근5경기</div>
+                        <div class="col-3" style="width: 50px;">STREAK</div>
                     </div>
                     <div v-for="participant in participants" :key="participant.id" 
                         class="table-head col-12 row mx-0 my-1 text" 
                         style="text-align: center; line-height: 50px; border-bottom: 1px solid black;">
                         <div class="col-3" style="width: 50px;">{{ participant.rank }}</div>
-                        <div class="col-3" style="width: 60px;"><img src="@/assets/img/1.png"></div>
-                        <div class="col-3" style="width: 90px; text-align: left;">{{ participant.team.shortName }}</div>
+                        <div class="col-3" style="width: 60px;"><img src="@/assets/img/lck.png"></div>
+                        <div class="col-3" style="width: 90px; text-align: left; font-size: 18px;">{{ participant.team.shortName }}</div>
                         <div class="col-3" style="width: 150px;">{{ participant.win }}W {{ participant.loss }}L</div>
                         <div class="col-3" style="width: 150px;">{{ participant.setWin }} - {{ participant.setLoss }}</div>
                         <div class="col-3" style="width: 50px;">
                             {{ (participant.setWin - participant.setLoss > 0) ? "+" : "" }}{{ participant.setWin - participant.setLoss }}
                         </div>
-                        <div class="col-3" style="width: 150px;"></div>
-                        <div class="col-3" style="width: 50px;">P</div>
+                        <div class="col-3" style="width: 150px;">{{ participant.recentWin }}W {{ participant.recentLoss }}L</div>
+                        <div class="col-3" style="width: 50px;">{{ participant.streak }}</div>
                     </div>
                 </div>
             </div>
 
             <!-- matches list-->
-            <div class="col-12 text m-3">
+            <div id="match" class="col-12 text m-3">
                     <h4>Match</h4>
             </div>
             <div v-for="match in matches" :key="match.id" class="accordion accordion-flush m-5 row side" id="accordionFlushExample">
                 <div class="col-10 row">
                     <div class="col-12 m-2 row text">
-                        <div class="col-1 my-auto"><img src="@/assets/img/1.png"></div>
+                        <div class="col-1 my-auto"><img src="@/assets/img/lck.png"></div>
                         <div class="col-8">
                             <h5>{{ getTeamData(match.homeId, "name") }}</h5>
                             {{ getTeamData(match.homeId, "rank") }}위 {{ getTeamData(match.homeId, "win") }}W {{ getTeamData(match.homeId, "loss") }}L    
@@ -326,7 +403,7 @@ export default {
                         <div class="col-3 title my-auto"><h5>{{ match.homeScore }}</h5></div>
                     </div>
                     <div class="col-12 m-2 row text">
-                        <div class="col-1 my-auto"><img src="@/assets/img/t1.png"></div>
+                        <div class="col-1 my-auto"><img src="@/assets/img/lck.png"></div>
                         <div class="col-3">
                             <h5>{{ getTeamData(match.awayId, "name") }}</h5>
                             {{ getTeamData(match.awayId, "rank") }}위 {{ getTeamData(match.awayId, "win") }}W {{ getTeamData(match.awayId, "loss") }}L    
@@ -349,7 +426,7 @@ export default {
                     <div :id="`flush-collapse${match.id}`" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
                         <div class="accordion-body main row">
                             <div class="col-12 m-2 row text">
-                                <div class="col-1 my-auto"><img src="@/assets/img/1.png"></div>
+                                <div class="col-1 my-auto"><img src="@/assets/img/lck.png"></div>
                                 <div class="col-7">
                                     <h5>{{ getTeamData(match.homeId, "name") }}</h5>
                                     {{ getTeamData(match.homeId, "rank") }}위 {{ getTeamData(match.homeId, "win") }}W {{ getTeamData(match.homeId, "loss") }}L
@@ -357,7 +434,7 @@ export default {
                                 <div class="col-4 title my-auto"><input v-model="match.tmpHomeScore"></div>
                             </div>
                             <div class="col-12 m-2 row text">
-                                <div class="col-1 my-auto"><img src="@/assets/img/t1.png"></div>
+                                <div class="col-1 my-auto"><img src="@/assets/img/lck.png"></div>
                                 <div class="col-7">
                                     <h5>{{ getTeamData(match.awayId, "name") }}</h5>
                                     {{ getTeamData(match.awayId, "rank") }}위 {{ getTeamData(match.awayId, "win") }}W {{ getTeamData(match.awayId, "loss") }}L
@@ -373,6 +450,8 @@ export default {
                         </div>
                     </div>
                 </div>
+            </div>
+
             </div>
         </div>
     </div>

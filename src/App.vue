@@ -19,7 +19,13 @@ export default {
   <router-view></router-view>
 </template>
 
-<style scoped>
+<style>
+
+body {
+
+  background-color: #202022;   
+  color: white;
+}
 
 .logo {
   height: 6em;

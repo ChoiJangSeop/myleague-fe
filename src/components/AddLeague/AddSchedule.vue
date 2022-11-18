@@ -116,10 +116,10 @@ export default {
             
         },
 
-        createMatch(round, home, away) {
+        createMatch(_round, home, away) {
        
             const match = {
-                round: round,
+                round: _round,
                 matchDate: "",
                 homeId: home,
                 awayId: away
