@@ -265,15 +265,15 @@ export default {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     
-    <div class="row p-0" style="height: 800px; border-top: 1px solid #0d0d0d;">
+    <div class="row p-0" style="height: 100vh; border-top: 1px solid #0d0d0d;">
         <!-- side page -->
         <div class="col-3 p-0 side">
             <div class="league-info">
                 <div class="col-12">
-                    <img src="@/assets/img/worlds_logo.png">
+                    <img src="@/assets/img/lck_background.png">
                 </div>
                 <div class="col-12 my-2">
-                    <h2 class="title">title</h2>
+                    <h2 class="title" v-if="league !== null">{{ league.title }}</h2>
                 </div>
             </div>
             <div class="col-12 my-auto pt-1 mt-5 title">
@@ -288,11 +288,11 @@ export default {
             <div v-for="participant in participants" :key="participant.id" 
                 class="table-head col-12 row mx-0 my-1 text" 
                 style="text-align: center;">
-                <div class="col-3">{{ participant.rank }}</div>
-                <div class="col-1 p-0"><img src="@/assets/img/lck.png"></div>
-                <div class="col-2">{{ participant.team.shortName }}</div>
-                <div class="col-3">{{ participant.win }} - {{ participant.loss }}</div>
-                <div class="col-3">{{ (participant.setWin - participant.setLoss > 0) ? "+" : "" }}{{ participant.setWin - participant.setLoss }}</div>
+                <div class="col-3 my-auto">{{ participant.rank }}</div>
+                <div class="col-1 p-0 my-auto"><img src="@/assets/img/lck.png"></div>
+                <div class="col-2 my-auto">{{ participant.team.shortName }}</div>
+                <div class="col-3 my-auto">{{ participant.win }} - {{ participant.loss }}</div>
+                <div class="col-3 my-auto">{{ (participant.setWin - participant.setLoss > 0) ? "+" : "" }}{{ participant.setWin - participant.setLoss }}</div>
             </div>
         </div>
 
@@ -319,7 +319,7 @@ export default {
             </div>
 
             <!-- main container-->
-            <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example" tabindex="0" style="height: 750px; overflow-y: scroll;">
+            <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example" tabindex="0" style="height: 95vh; overflow-y: scroll;">
             <!-- Teams -->
             <div class="col-12 row">
                 <div class="col-12 text m-3">
@@ -350,27 +350,27 @@ export default {
                 </div>
                 <div class="col-9">
                     <div class="table-head main col-12 row mx-0 my-1 text" style="text-align: center; border-bottom: 1px solid black;">
-                        <div class="col-3" style="width: 50px;">R</div>
-                        <div class="col-3" style="width: 150px;">TEAM</div>
-                        <div class="col-3" style="width: 150px;">MATCH</div>
-                        <div class="col-3" style="width: 150px;">SET</div>
-                        <div class="col-3" style="width: 50px;">Pt</div>
-                        <div class="col-3" style="width: 150px;">최근5경기</div>
-                        <div class="col-3" style="width: 50px;">STREAK</div>
+                        <div class="col-3" style="width: 6%;">R</div>
+                        <div class="col-3" style="width: 20%;">TEAM</div>
+                        <div class="col-3" style="width: 20%;">MATCH</div>
+                        <div class="col-3" style="width: 20%;">SET</div>
+                        <div class="col-3" style="width: 7%;">Pt</div>
+                        <div class="col-3" style="width: 20%;">최근5경기</div>
+                        <div class="col-3" style="width: 7%;">STREAK</div>
                     </div>
                     <div v-for="participant in participants" :key="participant.id" 
-                        class="table-head col-12 row mx-0 my-1 text" 
+                        class="table-head col-12 row mx-0 text" 
                         style="text-align: center; line-height: 50px; border-bottom: 1px solid black;">
-                        <div class="col-3" style="width: 50px;">{{ participant.rank }}</div>
-                        <div class="col-3" style="width: 60px;"><img src="@/assets/img/lck.png"></div>
-                        <div class="col-3" style="width: 90px; text-align: left; font-size: 18px;">{{ participant.team.shortName }}</div>
-                        <div class="col-3" style="width: 150px;">{{ participant.win }}W {{ participant.loss }}L</div>
-                        <div class="col-3" style="width: 150px;">{{ participant.setWin }} - {{ participant.setLoss }}</div>
-                        <div class="col-3" style="width: 50px;">
+                        <div class="col-3" style="width: 6%; height: 50px;">{{ participant.rank }}</div>
+                        <div class="col-3" style="width: 8%; height: 50px;"><img class="standing_img" src="@/assets/img/lck.png"></div>
+                        <div class="col-3" style="width: 12%; text-align: left; font-size: 18px; height: 50px;">{{ participant.team.shortName }}</div>
+                        <div class="col-3" style="width: 20%; height: 50px;">{{ participant.win }}W {{ participant.loss }}L</div>
+                        <div class="col-3" style="width: 20%; height: 50px;">{{ participant.setWin }} - {{ participant.setLoss }}</div>
+                        <div class="col-3" style="width: 7%; height: 50px;">
                             {{ (participant.setWin - participant.setLoss > 0) ? "+" : "" }}{{ participant.setWin - participant.setLoss }}
                         </div>
-                        <div class="col-3" style="width: 150px;">{{ participant.recentWin }}W {{ participant.recentLoss }}L</div>
-                        <div class="col-3" style="width: 50px;">{{ participant.streak }}</div>
+                        <div class="col-3" style="width: 20%;">{{ participant.recentWin }}W {{ participant.recentLoss }}L</div>
+                        <div class="col-3" style="width: 7%;">{{ participant.streak }}</div>
                     </div>
                 </div>
             </div>
@@ -384,7 +384,7 @@ export default {
                 <div class="col-10 row">
                     <div class="col-12 m-2 row text">
                         <div class="col-1 my-auto"><img src="@/assets/img/lck.png"></div>
-                        <div class="col-3">
+                        <div class="col-3 my-auto">
                             <h5>{{ getTeamData(match.homeId, "name") }}</h5>
                             {{ getTeamData(match.homeId, "rank") }}위 {{ getTeamData(match.homeId, "win") }}W {{ getTeamData(match.homeId, "loss") }}L    
                         </div>
@@ -393,7 +393,7 @@ export default {
                     </div>
                     <div class="col-12 m-2 row text">
                         <div class="col-1 my-auto"><img src="@/assets/img/lck.png"></div>
-                        <div class="col-3">
+                        <div class="col-3 my-auto">
                             <h5>{{ getTeamData(match.awayId, "name") }}</h5>
                             {{ getTeamData(match.awayId, "rank") }}위 {{ getTeamData(match.awayId, "win") }}W {{ getTeamData(match.awayId, "loss") }}L    
                         </div>
@@ -405,7 +405,7 @@ export default {
                     <h5>{{ match.matchDate.split('T')[0] }}</h5>
                     <h5>{{ getDay(match.matchDate) }}</h5>
                 </div>
-                <div class="accordion-item m-3 col-12 row">
+                <div class="accordion-item m-3 col-11 row">
                     <div class="col-2">Round {{ match.round }}</div>
                     <p class="accordion-header col-10" id="flush-headingOne">
                         <a class="collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="`#flush-collapse${match.id}`" aria-expanded="false" aria-controls="flush-collapseOne">
@@ -509,6 +509,14 @@ nav {
 
 .league-info {
 }
+
+.standing_img {
+    width: auto;
+    height: 100%;
+    border-radius: 2px;
+    padding: 4px;
+}
+
 img {
     width: 100%;
     border-radius: 2px;

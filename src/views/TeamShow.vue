@@ -31,6 +31,8 @@ export default {
             this.records.forEach(record => {
                 this.axios.get("/leagues/"+record.leagueId).then(res => {
                     record.title = res.data.title;
+                    record.startedDate = res.data.startedDate.split(" ")[0].replaceAll("-", ".");
+                    record.endDate = res.data.endDate.split(" ")[0].replaceAll("-", ".");
                 })
             })
         });
@@ -118,17 +120,17 @@ export default {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     
-    <div v-if="team !== null && records !== null" class="row p-0" style="height: 800px; border-top: 1px solid #0d0d0d;">
+    <div v-if="team !== null && records !== null" class="row p-0" style="height: 95vh; border-top: 1px solid #0d0d0d;">
         <!-- side page -->
-        <div class="p-0 sub" style="width: 25%;">
-            <img src="@/assets/img/lck.png">
+        <div class="p-0 sub" style="width: 25vw;">
+            <div class="img_box"><img class="main_logo" src="@/assets/img/kt.png"></div>
             <div class="title my-3">
                 <h1>{{ team.shortName }}</h1>
                 <h3>{{ team.name }}</h3>
             </div>
             
             <div class="my-auto pt-1 mt-5 title">
-                <h5>LEAGUE RECORD</h5>
+                <h5>LEAGUES IN PROGRESS</h5>
             </div>
             <div class="table-head main col-12 row mx-0 my-1 title" style="text-align: center;">
                 <div class="col-5">League</div>
@@ -139,7 +141,7 @@ export default {
             <div v-for="record in records" :key="record.id" 
                 class="table-head col-12 row mx-0 my-1 title" 
                 style="text-align: center;">
-                <div class="col-5">{{ record.title }}</div>
+                <div class="col-5 my-auto">{{ record.title }}</div>
                 <div class="col-2 my-auto">{{ record.rank }}위</div>
                 <div class="col-3 my-auto">{{ record.win }}W {{ record.loss }}L</div>
                 <div class="col-1 my-auto">{{ (record.setWin - record.setLoss > 0) ? "+" : "" }}{{ record.setWin - record.setLoss }}</div>
@@ -149,7 +151,7 @@ export default {
 
 
         <!-- main page -->
-        <div class="main p-0" style="width:75%;">
+        <div class="main p-0" style="width:75vw;">
             <!-- navigation -->
             <div>
             <nav id="navar" class="navbar navbar-expand-lg navbar-dark">
@@ -158,19 +160,20 @@ export default {
                         <a class="nav-link active" aria-current="page" href="#">Main</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link" href="#standing">Players</a>
+                        <a class="nav-link" href="#players">Players</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link" href="#match">League Record</a>
+                        <a class="nav-link" href="#league_record">League Record</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link" href="#">Match Record</a>
+                        <a class="nav-link" href="#match_record">Match Record</a>
                         </li>
                     </ul>
             </nav>
             </div>
 
             <!-- players -->
+            <div id="players"></div>
             <div class="col-12 row">
                 <div class="col-12 text m-3">
                     <h4>Players</h4>
@@ -178,7 +181,7 @@ export default {
             </div>
 
             <!-- league record -->
-            <div id="standing"></div>
+            <div id="league_record"></div>
             <div class="col-12 text m-3">
                     <h4>League Record</h4>
             </div>
@@ -198,7 +201,7 @@ export default {
                         style="text-align: center; line-height: 50px; border-bottom: 1px solid black;">
                         <div class="my-auto title" style="width: 6%"><img src="@/assets/img/lck.png"></div>
                         <div style="width: 24%;">{{ record.title }}</div>
-                        <div style="width: 20%;">리그 운영 기간</div>
+                        <div style="width: 20%;">{{ record.startedDate }} ~ {{ record.endDate }}</div>
                         <div style="width: 10%;">진행중</div>
                         <div style="width: 10%;">{{ record.rank }}위</div>
                         <div style="width: 20%;">{{ record.win }}W {{ record.loss }}L</div>
@@ -265,7 +268,15 @@ nav {
 
 img {
     width: 100%;
-    border-radius: 2px;
+    padding: 10%;
+    vertical-align: middle;
+}
+
+
+.img_box {
     aspect-ratio: 1/1;
+    line-height: 25vw;
+    padding: 5%;
+    background: linear-gradient(45deg, Violet, Orange);
 }
 </style>

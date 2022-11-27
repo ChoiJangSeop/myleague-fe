@@ -58,7 +58,7 @@ export default {
             </nav>
             </div>
 
-            <div class="main" style="height: 700px; overflow-y: scroll;">
+            <div class="main" style="height: 100vh; overflow-y: scroll;">
                 <h5 v-if="showLeagues.length === 0" class="m-3">No Leagues</h5>
                 <template v-for="league in showLeagues" :key="league.title">
                     <LeagueCard :league="league" class="m-3"/>

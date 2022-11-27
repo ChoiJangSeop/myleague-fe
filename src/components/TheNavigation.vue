@@ -26,5 +26,6 @@
 nav {
   background-color: #262626;
   font-family: 'Fjalla One', sans-serif;
+  height: 5vh;
 }
 </style>

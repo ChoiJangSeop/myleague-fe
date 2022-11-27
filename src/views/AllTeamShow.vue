@@ -78,7 +78,7 @@ export default {
             </nav>
             </div>
 
-            <div class="main" style="height: 700px; overflow-y: scroll;">
+            <div class="main" style="height: 100vh; overflow-y: scroll;">
                 <h5 class="m-3" v-if="showTeams.length===0">No Teams</h5>
                 <template v-for="team in showTeams" :key="team.id">
                     <TeamCard class="m-3" :team="team" />
