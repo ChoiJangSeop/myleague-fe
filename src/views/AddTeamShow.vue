@@ -51,36 +51,59 @@ export default {
 </script>
 
 <template>
-    <h1 class="m-4">팀 생성</h1>
-    <button class="btn btn-primary m-4 g-3" v-on:click="addForm">+</button>
-    <form class="row ms-3 me-3 g-3">
-        <div class="col-md-5">
-            <label for="teamName" class="form-label">Team Full Name</label>
+    <div class="row" style="height:750px;">
+        <div class="col-2 sub">
+            계정 정보
         </div>
-        <div class="col-md-3">
-            <label for="teamShortName" class="form-label">Team Short Name</label>
-        </div>
-        <div class="col-md-4">
-            <label for="teamStat" class="form-label">Team Stat</label>
-        </div>
-    </form>
-    
-    <div v-for="data in datas" class="row ms-3 me-3 g-3 mb-3" :key="data._id">
-        <div class="col-md-5">
-            <input id="teamName" v-model="data.name" type="text" class="form-control">
-        </div>
-        <div class="col-md-3">
-            <input id="teamShortName" v-model="data.shortName" type="text" class="form-control">
-        </div>
-        <div class="col-md-4 row g-2">
-            <div class="col-md-2">
-                <input id="teamStat" v-model="data.stat" type="number" class="form-control">
+        
+        <div class="col-10 main">
+            <h1 class="m-4">Create Teams</h1>
+            <button class="btn btn-primary m-4 g-3" v-on:click="addForm">+</button>
+            <form class="row ms-3 me-3 g-3">
+                <div class="col-md-5">
+                    <label for="teamName" class="form-label">Team Full Name</label>
+                </div>
+                <div class="col-md-2">
+                    <label for="teamShortName" class="form-label">Team Short Name</label>
+                </div>
+                <div class="col-md-5">
+                    <label for="teamStat" class="form-label">Team Stat</label>
+                </div>
+            </form>
+            
+            <div v-for="data in datas" class="row ms-3 me-3 g-3 mb-3" :key="data._id">
+                <div class="col-md-5">
+                    <input id="teamName" v-model="data.name" type="text" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <input id="teamShortName" v-model="data.shortName" type="text" class="form-control">
+                </div>
+                <div class="col-md-5 row g-2">
+                    <div class="col-md-2">
+                        <input id="teamStat" v-model="data.stat" type="number" class="form-control">
+                    </div>
+                    <div class="col-md-8">
+                        <input type="file" accept="image/*" @change="onImageChange">
+                    </div>
+                    <button @click="cancelAddForm(data)" class="btn btn-danger col-md-2">X</button>
+                </div>        
             </div>
-            <div class="col-md-8">
-                <input type="file" accept="image/*" @change="onImageChange">
-            </div>
-            <button @click="cancelAddForm(data)" class="btn btn-danger col-md-2">X</button>
-        </div>        
+            <button class="btn btn-success ms-4 g-3" @click="postTeams()">Create</button>
+        </div>
     </div>
-    <button class="btn btn-success ms-4 g-3" @click="postTeams()">Create</button>
 </template>
+
+<style scoped>
+
+.main {
+    color: white;
+    background-color: #202022; 
+    font-family: 'Fjalla One', sans-serif;;
+}
+
+.sub {
+    color: white;
+    background-color: #262626;
+}
+
+</style>

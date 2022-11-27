@@ -6,75 +6,266 @@ export default {
     data() {
         return {
             team: null,
-            players: [],
+            records: [],
+            matches: [],
+            matchRecord: [],
         }
     },
-    methods: {
-        getTeam() {
-            this.axios.get("/teams/"+this.id).then(res => {
-                this.team = res.data;
-                console.log(res.data);
 
-                this.axios.get(this.team.links.find(link => link.rel === 'players').href)
-                    .then(res => {
-                        this.players = res.data.content;
-                });
-            });
-        },
-        deleteTeam() {
-            if (confirm("팀을 삭제하시겠습니까? 삭제시 복구는 불가능합니다") === true) {
-                this.axios.delete("/teams/"+this.id).then(res => {
-                    console.log(res);
-                });
-                this.$router.push({ name: 'allTeams' })
-            }
-        }
+    methods: {
+        
     },
     mounted() {
-        this.getTeam();
+        console.log("mounted!");
+        
+
+        // team basic info
+        this.axios.get("/teams/"+this.id).then(res => {
+            this.team = res.data;
+        });
+
+        // team league record
+        this.axios.get("/participants/search?team="+this.id).then(res => {
+            this.records = res.data.content;
+
+            this.records.forEach(record => {
+                this.axios.get("/leagues/"+record.leagueId).then(res => {
+                    record.title = res.data.title;
+                })
+            })
+        });
+
+        // team match record
+        this.axios.get("/matches/search?team="+this.id).then(res => {
+            this.matches = res.data.content;
+
+            this.matches = this.matches.filter(match => (
+                match.homeScore !== -1 && match.awayScore !== -1
+            ));
+
+            this.matches.forEach(match => {
+                this.axios.get("/participants/"+match.homeId).then(res => {
+                    if (res.data.teamId !== this.id) {
+                        if (this.matchRecord.filter(record => record.teamId === res.data.teamId).length == 0) {
+                            let newRecord = {
+                                "teamId": res.data.teamId,
+                                "win" : 0,
+                                "loss": 0,
+                                "setWin": 0,
+                                "setLoss": 0,
+                            };
+
+                            this.matchRecord.push(newRecord);
+                        }
+
+                        this.matchRecord.forEach(record => {
+                            if (record.teamId === res.data.teamId) {
+                                if (match.homeScore < match.awayScore) {
+                                    record.win++;
+                                } else {
+                                    record.loss++;
+                                }
+
+                                record.setWin += match.awayScore;
+                                record.setLoss += match.homeScore;
+                            }
+                        })
+                    }
+                });
+
+                this.axios.get("/participants/"+match.awayId).then(res => {
+                    if (res.data.teamId !== this.id) {
+                        if (this.matchRecord.filter(record => record.teamId === res.data.teamId).length == 0) {
+                            let newRecord = {
+                                "teamId": res.data.teamId,
+                                "win" : 0,
+                                "loss": 0,
+                                "setWin": 0,
+                                "setLoss": 0,
+                            };
+
+                            this.matchRecord.push(newRecord);
+                        }
+
+                        this.matchRecord.forEach(record => {
+                            if (record.teamId === res.data.teamId) {
+                                if (match.awayScore < match.homeScore) {
+                                    record.win++;
+                                } else {
+                                    record.loss++;
+                                }
+
+                                record.setWin += match.homeScore;
+                                record.setLoss += match.awayScore;
+                            }
+                        })
+                    }
+                });
+            })
+
+        });
+
+        
     },
+
     watch: {
-        team: {
-            immediate: true,
-            handler() {
-                this.getTeam();
-            }
-        }
     }
 }
 </script>
 
 <template>
-    <div class="card m-3 big-card" style="width: 50rem;">
-        <img src="@/assets/img/1.png" class="card-img-top" style="height:160px; width:fit-content">
-        <div class="card-body">
-            <h1 class="card-title">{{ team.shortName }}</h1>
-            <h5 class="card-text">{{ team.name }}</h5>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    
+    <div v-if="team !== null && records !== null" class="row p-0" style="height: 800px; border-top: 1px solid #0d0d0d;">
+        <!-- side page -->
+        <div class="p-0 sub" style="width: 25%;">
+            <img src="@/assets/img/lck.png">
+            <div class="title my-3">
+                <h1>{{ team.shortName }}</h1>
+                <h3>{{ team.name }}</h3>
+            </div>
+            
+            <div class="my-auto pt-1 mt-5 title">
+                <h5>LEAGUE RECORD</h5>
+            </div>
+            <div class="table-head main col-12 row mx-0 my-1 title" style="text-align: center;">
+                <div class="col-5">League</div>
+                <div class="col-2">R</div>
+                <div class="col-3">W - L</div>
+                <div class="col-1">P</div>
+            </div>
+            <div v-for="record in records" :key="record.id" 
+                class="table-head col-12 row mx-0 my-1 title" 
+                style="text-align: center;">
+                <div class="col-5">{{ record.title }}</div>
+                <div class="col-2 my-auto">{{ record.rank }}위</div>
+                <div class="col-3 my-auto">{{ record.win }}W {{ record.loss }}L</div>
+                <div class="col-1 my-auto">{{ (record.setWin - record.setLoss > 0) ? "+" : "" }}{{ record.setWin - record.setLoss }}</div>
+            </div>
+
         </div>
-        <ul class="list-group list-group-flush row">
-            <li v-for="player in players" :key="player.id" class="list-group-item">
-                <div class="card" style="width: 18rem;">
-                    <div class="card-header mb-3">{{ player.name }}</div>
-                    <img src="@/assets/img/basic_img.png" class="card-img-top" alt="...">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">{{ player.position }}</li>
-                        <li class="list-group-item">{{ player.stat }}</li>
+
+
+        <!-- main page -->
+        <div class="main p-0" style="width:75%;">
+            <!-- navigation -->
+            <div>
+            <nav id="navar" class="navbar navbar-expand-lg navbar-dark">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Main</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="#standing">Players</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="#match">League Record</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="#">Match Record</a>
+                        </li>
                     </ul>
-                    <div class="card-body">
-                        <a href="#" class="card-link">Go Detail</a>
+            </nav>
+            </div>
+
+            <!-- players -->
+            <div class="col-12 row">
+                <div class="col-12 text m-3">
+                    <h4>Players</h4>
+                </div>
+            </div>
+
+            <!-- league record -->
+            <div id="standing"></div>
+            <div class="col-12 text m-3">
+                    <h4>League Record</h4>
+            </div>
+            <div class="col-12 row">
+                <div class="col-12">
+                    <div class="table-head main col-12 row mx-0 my-1 text" style="text-align: center; border-bottom: 1px solid black;">
+                        <div style="width: 6%;"></div>
+                        <div style="width: 24%;">League</div>
+                        <div style="width: 20%;">Date</div>
+                        <div style="width: 10%;">Status</div>
+                        <div style="width: 10%;">Rank</div>
+                        <div style="width: 20%;">Match</div>
+                        <div style="width: 10%;">SET</div>
+                    </div>
+                    <div v-for="record in records" :key="record.id" 
+                        class="table-head col-12 row mx-0 my-1 text" 
+                        style="text-align: center; line-height: 50px; border-bottom: 1px solid black;">
+                        <div class="my-auto title" style="width: 6%"><img src="@/assets/img/lck.png"></div>
+                        <div style="width: 24%;">{{ record.title }}</div>
+                        <div style="width: 20%;">리그 운영 기간</div>
+                        <div style="width: 10%;">진행중</div>
+                        <div style="width: 10%;">{{ record.rank }}위</div>
+                        <div style="width: 20%;">{{ record.win }}W {{ record.loss }}L</div>
+                        <div style="width: 10%;">{{ record.setWin }} - {{ record.setLoss }}</div>
                     </div>
                 </div>
-            </li>
-        </ul>
-        <div class="card-body">
-            <a :href="`/team/${team.id}/${team.shortName}/edit`" class="btn btn-warning card-link">Edit</a>
-            <button v-on:click="deleteTeam" class="btn btn-secondary card-link">Delete</button>
+            </div>
+
         </div>
     </div>
+    
 </template>
 
 <style scoped>
-.big-card {
-    border:0ch;
+nav {
+    background-color: #262626;
+    height: 40px;
+    font-family: 'Fjalla One', sans-serif;
+}
+.main {
+    background-color: #202022;   
+    color: white;
+}
+.sub {
+    background-color: #262626;
+    color: white;
+}
+
+
+.btn-side {
+    background-color: #202022;
+    border-radius: 5px;
+    color: white;
+}
+
+.btn-main {
+    background-color: #262626;
+    border-radius: 5px;
+    color: white;
+}
+
+.standing-side {
+    background-size: 100% 100%;
+    background-image: url("@/assets/img/worlds_logo.png");
+    opacity: 0.2;
+}
+
+
+
+.title {
+    font-weight: bold;
+    text-align: center;
+    font-family: 'Fjalla One', sans-serif;
+}
+
+.match {
+    font-size: 20px;
+}
+
+.text {
+    font-weight: bold;
+    font-family: 'Fjalla One', sans-serif;
+}
+
+img {
+    width: 100%;
+    border-radius: 2px;
+    aspect-ratio: 1/1;
 }
 </style>

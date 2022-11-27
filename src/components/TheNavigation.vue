@@ -25,5 +25,6 @@
 <style scoped>
 nav {
   background-color: #262626;
+  font-family: 'Fjalla One', sans-serif;
 }
 </style>

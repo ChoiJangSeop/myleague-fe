@@ -8,6 +8,7 @@ export default {
             league: null,
             participants: [],
             matches: [],
+            days: [ "SUN", "MON", "TUE", "WED", "THUR", "FRI", "SAT" ],
         }
     },
 
@@ -194,10 +195,23 @@ export default {
 
             match.tmpHomeScore = homeScore;
             match.tmpAwayScore = awayScore;
+        },
+
+        getDay(matchDate) {
+            let matchDate_split = matchDate.split('T')[0];
+
+            let _matchDate = new Date();
+            _matchDate.setFullYear(parseInt(matchDate_split.split('-')[0]));
+            _matchDate.setMonth(parseInt(matchDate_split.split('-')[1]));
+            _matchDate.setDate(parseInt(matchDate_split.split('-')[2]));
+
+            return this.days[_matchDate.getDay()];
         }
         
     },
     mounted() {
+        console.log("mounted!");
+        
         this.axios.get("/leagues/"+this.id).then(res => {
             this.league = res.data;
         });
@@ -249,8 +263,8 @@ export default {
 <template>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    
     <div class="row p-0" style="height: 800px; border-top: 1px solid #0d0d0d;">
         <!-- side page -->
         <div class="col-3 p-0 side">
@@ -259,7 +273,7 @@ export default {
                     <img src="@/assets/img/worlds_logo.png">
                 </div>
                 <div class="col-12 my-2">
-                    <h2 class="title">league Title</h2>
+                    <h2 class="title">title</h2>
                 </div>
             </div>
             <div class="col-12 my-auto pt-1 mt-5 title">
@@ -285,7 +299,7 @@ export default {
         <!-- main page -->
         <div class="col-9 p-0 main">
             <!-- navigation -->
-            
+            <div>
             <nav id="navar" class="navbar navbar-expand-lg navbar-dark">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
@@ -302,9 +316,10 @@ export default {
                         </li>
                     </ul>
             </nav>
+            </div>
 
             <!-- main container-->
-            <div data-bs-spy="scroll" data-bs-target="#navbar" data-bs-offset="0" class="scrollspy-example" tabindex="0">
+            <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example" tabindex="0" style="height: 750px; overflow-y: scroll;">
             <!-- Teams -->
             <div class="col-12 row">
                 <div class="col-12 text m-3">
@@ -317,44 +332,16 @@ export default {
                     </div>
                 </div>
             </div>
-            
-            <!-- recent matches -->
-            <div class="col-12 text m-3">
-                    <h4>Recent Matches</h4>
-            </div>
-            <div class="row" style="line-height: 50px;">
-                <div class="col-2 title my-auto" style="text-align: right;">2022.10.11 5PM</div>
-                <div class="col-10 row side text mx-3 my-3 match" style="width: 640px; border-radius: 10px;">
-                    <div class="col-1"></div>
-                    <div class="col-3" style="text-align: right;">Afreeca Freecs</div>
-                    <div class="col-1"><img src="@/assets/img/1.png"></div>
-                    <div class="col-1 m-1 main title" style="border-radius: 10px; font-size: 30px;">2</div>
-                    <div class="col-1 m-1 main title" style="border-radius: 10px; font-size: 30px;">0</div>
-                    <div class="col-1"><img src="@/assets/img/t1.png"></div>
-                    <div class="col-3">T1</div>
-                </div>
-            </div>
-            <div class="row" style="line-height: 50px;">
-                <div class="col-2 title my-auto" style="text-align: right;">2022.10.11 5PM</div>
-                <div class="row side text mx-3 my-3 match" style="width: 640px; border-radius: 10px;">
-                    <div class="col-1"></div>
-                    <div class="col-3" style="text-align: right;">Afreeca Freecs</div>
-                    <div class="col-1"><img src="@/assets/img/1.png"></div>
-                    <div class="col-1 m-1 main title" style="border-radius: 10px; font-size: 30px;">3</div>
-                    <div class="col-1 m-1 main title" style="border-radius: 10px; font-size: 30px;">1</div>
-                    <div class="col-1"><img src="@/assets/img/t1.png"></div>
-                    <div class="col-3">T1</div>
-                </div>
-            </div>
 
             <!-- standing -->
-            <div id="standing" class="col-12 text m-3">
+            <div id="standing"></div>
+            <div class="col-12 text m-3">
                     <h4>Standing</h4>
             </div>
             <div class="col-12 row">
                 <div class="col-3 standing-side row">
                     <div class="col-12 my-auto">
-                        <h1 class="title md-1" style="color:white;">45 / 90</h1>
+                        <h1 class="title md-1" style="color: red;">{{ matches.filter(match => (match.homeScore !== "")).length }} / {{ matches.length }}</h1>
                         <div class="progress">
                             <div class="progress-bar" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
                             </div>
@@ -389,17 +376,19 @@ export default {
             </div>
 
             <!-- matches list-->
-            <div id="match" class="col-12 text m-3">
+            <div id="match"></div>
+            <div class="col-12 text m-3">
                     <h4>Match</h4>
             </div>
             <div v-for="match in matches" :key="match.id" class="accordion accordion-flush m-5 row side" id="accordionFlushExample">
                 <div class="col-10 row">
                     <div class="col-12 m-2 row text">
                         <div class="col-1 my-auto"><img src="@/assets/img/lck.png"></div>
-                        <div class="col-8">
+                        <div class="col-3">
                             <h5>{{ getTeamData(match.homeId, "name") }}</h5>
                             {{ getTeamData(match.homeId, "rank") }}위 {{ getTeamData(match.homeId, "win") }}W {{ getTeamData(match.homeId, "loss") }}L    
                         </div>
+                        <div class="col-5 my-auto"><h5><span v-if="match.homeScore > match.awayScore" class="badge bg-primary">win</span></h5></div>
                         <div class="col-3 title my-auto"><h5>{{ match.homeScore }}</h5></div>
                     </div>
                     <div class="col-12 m-2 row text">
@@ -408,13 +397,13 @@ export default {
                             <h5>{{ getTeamData(match.awayId, "name") }}</h5>
                             {{ getTeamData(match.awayId, "rank") }}위 {{ getTeamData(match.awayId, "win") }}W {{ getTeamData(match.awayId, "loss") }}L    
                         </div>
-                        <div class="col-5"><h5><span class="badge bg-primary">win</span></h5></div>
+                        <div class="col-5 my-auto"><h5><span v-if="match.homeScore < match.awayScore" class="badge bg-primary">win</span></h5></div>
                         <div class="col-3 title my-auto"><h5>{{ match.awayScore }}</h5></div>
                     </div>
                 </div>
                 <div class="col-2 my-auto title">
                     <h5>{{ match.matchDate.split('T')[0] }}</h5>
-                    <h5>5PM</h5>
+                    <h5>{{ getDay(match.matchDate) }}</h5>
                 </div>
                 <div class="accordion-item m-3 col-12 row">
                     <div class="col-2">Round {{ match.round }}</div>
@@ -462,7 +451,7 @@ export default {
 nav {
     background-color: #262626;
     height: 40px;
-    font-family: 'Roboto Condensed', sans-serif;
+    font-family: 'Fjalla One', sans-serif;
 }
 .main {
     background-color: #202022;   
@@ -506,8 +495,7 @@ nav {
 .title {
     font-weight: bold;
     text-align: center;
-    font-family: 'Roboto Condensed', sans-serif;
-
+    font-family: 'Fjalla One', sans-serif;
 }
 
 .match {
@@ -516,8 +504,7 @@ nav {
 
 .text {
     font-weight: bold;
-    font-family: 'Roboto Condensed', sans-serif;
-
+    font-family: 'Fjalla One', sans-serif;
 }
 
 .league-info {

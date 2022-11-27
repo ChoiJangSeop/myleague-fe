@@ -15,6 +15,10 @@ export default {
 </script>
 
 <template>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+
   <TheNavigation />
   <router-view></router-view>
 </template>
